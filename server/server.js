@@ -40,13 +40,13 @@ app.get('/todos/:id', (req, res) => {
     // if(!mongoose.Types.ObjectID.isValid('1234')) {
     //     return console.log('Invalid id');
     // }
-    Todo.findById(id).then((todos) => {
-        if (!todos) {
-            res.send('No todos with provided id found');
+    Todo.findById(id).then((todo) => {
+        if (!todo) {
+            res.status(404).send('No todos with provided id found');
             return console.log('no documents with provided id');
         }
-        res.send(JSON.stringify({todos}, undefined, 5));
-        console.log(JSON.stringify(todos, undefined, 5));
+        res.send({todo});
+        //console.log(JSON.stringify(todo, undefined, 5));
     }).catch((e) => res.status(400).send());
 });
 
