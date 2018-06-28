@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 
 let { mongoose } = require('./db/mongoose');
 let { Todo } = require('./models/todo');
-let { user } = require('./models/user');
+let { User } = require('./models/user');
 
 let app = express();
 const port = process.env.PORT;
@@ -94,6 +94,20 @@ app.patch('/todos/:id', (req, res) => {
     })
 });
 
+// POST /users _.pick email password
+app.post('/users', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+    let user = new User(body);
+
+    //User - model methods User.findByToken
+    //user - instance methods user.generateAuthToken
+
+    user.save().then(() => {
+        return user.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
+    }).catch((e) => res.status(400).send(e));
+});
 
 // GET /todos/dhjdagjagjg
 
