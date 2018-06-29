@@ -3,12 +3,12 @@ require('./config/config');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
-const {ObjectID} = require('mongodb');
+const { ObjectID } = require('mongodb');
 
-let {mongoose} = require('./db/mongoose');
-let {Todo} = require('./models/todo');
-let {User} = require('./models/user');
-let {authenticate} = require('./middleware/authenticate');
+let { mongoose } = require('./db/mongoose');
+let { Todo } = require('./models/todo');
+let { User } = require('./models/user');
+let { authenticate } = require('./middleware/authenticate');
 
 let app = express();
 const port = process.env.PORT;
@@ -28,7 +28,7 @@ app.post('/todos', (req, res) => {
 
 app.get('/todos', (req, res) => {
     Todo.find().then((todos) => {
-        res.send({todos})
+        res.send({ todos })
     }).catch((e) => {
         res.status(400).send(res);
     });
@@ -49,7 +49,7 @@ app.get('/todos/:id', (req, res) => {
             res.status(404).send('No todos with provided id found');
             return console.log('no documents with provided id');
         }
-        res.send({todo});
+        res.send({ todo });
         //console.log(JSON.stringify(todo, undefined, 5));
     }).catch((e) => res.status(400).send());
 });
@@ -60,10 +60,10 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
     Todo.findByIdAndRemove(id).then((todo) => {
-        if(!todo) {
+        if (!todo) {
             return res.status(404).send();
         }
-        res.send({todo});
+        res.send({ todo });
     }).catch((e) => {
         res.status(400).send();
     });
@@ -78,18 +78,18 @@ app.patch('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
 
-    if(_.isBoolean(body.completed) && body.completed) {
+    if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime();
     } else {
         body.completed = false;
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
-        if(!todo) {
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+        if (!todo) {
             return res.status(404).send();
         }
-        res.send({todo});
+        res.send({ todo });
     }).catch((e) => {
         res.status(400).send();
     })
@@ -108,6 +108,15 @@ app.post('/users', (req, res) => {
     }).then((token) => {
         res.header('x-auth', token).send(user);
     }).catch((e) => res.status(400).send(e));
+});
+
+app.post('/users/login', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+    }).catch((e) => res.status(400).send());
 });
 
 app.get('/users/me', authenticate, (req, res) => {
